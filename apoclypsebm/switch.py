@@ -212,6 +212,12 @@ class Switch(object):
             else:
                 self.diff1_found(bytereverse(h[6]), result.target[6])
                 if belowOrEquals(h[:7], result.target[:7]):
+
+                    print("#####header")
+                    print(''.join(['%02x' % b for b in result.header]))
+                    print(hex(result.time))
+                    print(hex(nonce))
+
                     is_block = belowOrEquals(h[:7], self.true_target[:7])
                     hash6 = hexlify(pack('<I', int(h[6])))
                     hash5 = hexlify(pack('<I', int(h[5])))

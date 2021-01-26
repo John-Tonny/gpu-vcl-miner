@@ -142,16 +142,6 @@ class StratumSource(Source):
         j.extranonce2 = self.increment_nonce(j.extranonce2)
         coinbase = j.coinbase1 + self.extranonce + j.extranonce2 + j.coinbase2
         merkle_root = sha256(sha256(unhexlify(coinbase)).digest()).digest()
-
-        #john
-        prevhash = j.prevhash
-        j.prevhash = ''.join([j.prevhash[i]+j.prevhash[i+1] for i in range(0,len(j.prevhash),2)][::-1])        
-        prev_block_hash_words = bytearray()
-        for word in chunks(unhexlify(j.prevhash), 4):
-            # Prepend because template items are in RPC byte order.
-            prev_block_hash_words[0:0] = word
-        j.prevhash = ''.join(['%02x' % b for b in prev_block_hash_words])                
-
         for hash_ in j.merkle_branch:
             merkle_root = sha256(
                 sha256(merkle_root + unhexlify(hash_)).digest()).digest()
@@ -164,17 +154,6 @@ class StratumSource(Source):
         j.block_header = ''.join(
             [j.version, j.prevhash, merkle_root, j.ntime, j.nbits])
         j.time = time()
-        #john
-        header = ''.join([''.join([j.version[i]+j.version[i+1] for i in range(0,len(j.version),2)][::-1]),
-                         prevhash,
-                         merkle_root_bak,
-                         ''.join([j.ntime[i]+j.ntime[i+1] for i in range(0,len(j.ntime),2)][::-1]),
-                         ''.join([j.nbits[i]+j.nbits[i+1] for i in range(0,len(j.nbits),2)][::-1])])
-        
-        #print("##########header#############")
-        #print(coinbase)
-        #print(j.block_header)
-        #print(header)
         return j
 
     def increment_nonce(self, nonce):
@@ -196,6 +175,15 @@ class StratumSource(Source):
 
                 j.job_id = params[0]
                 j.prevhash = params[1]
+
+                #john
+                j.prevhash = ''.join([j.prevhash[i]+j.prevhash[i+1] for i in range(0,len(j.prevhash),2)][::-1])
+                prev_block_hash_words = bytearray()
+                for word in chunks(unhexlify(j.prevhash), 4):
+                    # Prepend because template items are in RPC byte order.
+                    prev_block_hash_words[0:0] = word
+                j.prevhash = ''.join(['%02x' % b for b in prev_block_hash_words])
+
                 j.coinbase1 = params[2]
                 j.coinbase2 = params[3]
                 j.merkle_branch = params[4]
